@@ -10,8 +10,7 @@
     <Nullable>enable</Nullable>
     <RestoreAdditionalProjectSources>
       https://api.nuget.org/v3/index.json;
-      https://nuget.bepinex.dev/v3/index.json;
-      https://nuget.samboy.dev/v3/index.json
+      https://nuget.bepinex.dev/v3/index.json
     </RestoreAdditionalProjectSources>
     <RootNamespace>SteamApiPatcher</RootNamespace>
   </PropertyGroup>
@@ -41,12 +40,24 @@
           <FilesToDelete Include="$(PublishDir)**\*" Exclude="$(PublishDir)/$(AssemblyName).dll"/>
       </ItemGroup>
       <Delete Files="@(FilesToDelete)" />
-      <Copy SourceFiles="$(MSBuildProjectDirectory)/assets/Steamworks/Facepunch.Steamworks.Win64.dll" DestinationFolder="$(PublishDir)/BepInEx/patchers" />
-      <Copy SourceFiles="$(MSBuildProjectDirectory)/assets/Steamworks/steam_api64.dll" DestinationFile="$(PublishDir)/BepInEx/patchers/steam_api64_v161.dll" />
+      <Copy SourceFiles="$(MSBuildProjectDirectory)/assets/Facepunch.Steamworks.Win64.dll" DestinationFolder="$(PublishDir)/BepInEx/patchers" />
+      <Copy SourceFiles="$(MSBuildProjectDirectory)/assets/steam_api64.dll" DestinationFiles="$(PublishDir)/BepInEx/patchers/steam_api64_v161.dll" />
       <Copy SourceFiles="$(MSBuildProjectDirectory)/assets/manifest.json" DestinationFolder="$(PublishDir)" />
       <Copy SourceFiles="$(MSBuildProjectDirectory)/assets/icon.png" DestinationFolder="$(PublishDir)" />
       <Move SourceFiles="$(PublishDir)/$(AssemblyName).dll" DestinationFolder="$(PublishDir)/BepInEx/patchers" />
       <Copy SourceFiles="$(MSBuildProjectDirectory)/README.md" DestinationFolder="$(PublishDir)" />
+      
+      <PropertyGroup>
+          <ManifestFile Condition="'$(ManifestFile)' == ''">$([System.IO.Path]::Combine($(PublishDir),'manifest.json'))</ManifestFile>
+      </PropertyGroup>
+
+      <ReadLinesFromFile File="$(ManifestFile)">
+        <Output TaskParameter="Lines" ItemName="ManifestLines" />
+      </ReadLinesFromFile>
+
+      <WriteLinesToFile File="$(ManifestFile)" Lines="@(ManifestLines->Replace('{__VERSION__}', '$(Version)'))" Overwrite="true" />
+      <Message Importance="High" Text="Replaced version in manifest.json" />
+
       <ZipDirectory Overwrite="true" SourceDirectory="$(MSBuildProjectDirectory)/$(PublishDir)" DestinationFile="$(PackagePath)" />
   </Target>
 </Project>
