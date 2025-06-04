@@ -3,5 +3,6 @@
     "name": "SteamApiPatcher",
     "description": "Upgrades Facepunch.Steamworks and the Steam API for greater feature support.",
     "version_number": "{__VERSION__}",
-    "website_url": "https://github.com/csh/bepinex-steam-patcher"
+    "website_url": "https://github.com/csh/bepinex-steam-patcher",
+    "dependencies": []
 }
