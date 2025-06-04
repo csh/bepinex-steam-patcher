@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>SteamApiPatcher</AssemblyName>
+    <Product>Steam API Patcher</Product>
+    <Version>0.1.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <RestoreAdditionalProjectSources>
+      https://api.nuget.org/v3/index.json;
+      https://nuget.bepinex.dev/v3/index.json;
+      https://nuget.samboy.dev/v3/index.json
+    </RestoreAdditionalProjectSources>
+    <RootNamespace>SteamApiPatcher</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Core" Version="5.*" ExcludeAssets="runtime" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.*"/>
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+  </ItemGroup>
+
+  <PropertyGroup>
+      <PackageDir Condition="'$(PackageDir)' == ''">$([System.IO.Path]::Combine($(OutputPath),'package'))/</PackageDir>
+      <PackagePath Condition="'$(PackagePath)' == ''">$([System.IO.Path]::Combine($(PackageDir),'$(AssemblyName)-v$(Version).zip'))</PackagePath>
+  </PropertyGroup>
+
+  <Target Name="PackageClean" AfterTargets="Clean">
+      <Delete Files="$(PackagePath)" />
+  </Target>
+
+  <Target Name="Thunderstore" AfterTargets="Publish">
+      <MakeDir Directories="$(PackageDir)" />
+
+      <ItemGroup>
+          <FilesToDelete Include="$(PublishDir)**\*" Exclude="$(PublishDir)/$(AssemblyName).dll"/>
+      </ItemGroup>
+      <Delete Files="@(FilesToDelete)" />
+      <Copy SourceFiles="$(MSBuildProjectDirectory)/assets/Steamworks/Facepunch.Steamworks.Win64.dll" DestinationFolder="$(PublishDir)/BepInEx/patchers" />
+      <Copy SourceFiles="$(MSBuildProjectDirectory)/assets/Steamworks/steam_api64.dll" DestinationFile="$(PublishDir)/BepInEx/patchers/steam_api64_v161.dll" />
+      <Copy SourceFiles="$(MSBuildProjectDirectory)/assets/manifest.json" DestinationFolder="$(PublishDir)" />
+      <Copy SourceFiles="$(MSBuildProjectDirectory)/assets/icon.png" DestinationFolder="$(PublishDir)" />
+      <Move SourceFiles="$(PublishDir)/$(AssemblyName).dll" DestinationFolder="$(PublishDir)/BepInEx/patchers" />
+      <Copy SourceFiles="$(MSBuildProjectDirectory)/README.md" DestinationFolder="$(PublishDir)" />
+      <ZipDirectory Overwrite="true" SourceDirectory="$(MSBuildProjectDirectory)/$(PublishDir)" DestinationFile="$(PackagePath)" />
+  </Target>
+</Project>
